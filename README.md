@@ -376,3 +376,97 @@ Schedule this script using cron jobs.
 ---
 
 Following these guidelines ensures a secure, stable, and high-performing Odoo deployment suitable for production environments.
+
+
+✅ Step-by-Step: Use the 2.18TB Datastore Inside Your Ubuntu VM
+🧱 1. Add a New Virtual Disk to the VM
+Power off your Ubuntu VM (optional, but safer).
+
+In the ESXi Web UI:
+
+Go to Virtual Machines → select your VM → Edit.
+
+Click Add hard disk → New hard disk.
+
+Set Size = e.g. 2000 GB (or whatever part of the 2.18TB you want).
+
+Disk Provisioning: Thick Lazy Zeroed or Thin (your choice).
+
+Storage: Select the 2.18TB datastore.
+
+Click Save.
+
+✅ This creates a second virtual disk (.vmdk) on your large HDD datastore and attaches it to your Ubuntu VM.
+
+🐧 2. Boot into Ubuntu and Format the Disk
+SSH into the VM or open console.
+
+Run:
+
+bash
+Copy
+Edit
+lsblk
+You'll see something like:
+
+cpp
+Copy
+Edit
+sda      25G
+└─sda1   ...
+sdb     2T     ← your new disk!
+Create a partition:
+
+bash
+Copy
+Edit
+sudo parted /dev/sdb
+(parted) mklabel gpt
+(parted) mkpart primary ext4 0% 100%
+(parted) quit
+Format it:
+
+bash
+Copy
+Edit
+sudo mkfs.ext4 /dev/sdb1
+📁 3. Mount the Disk for Odoo
+Create a mount point:
+
+bash
+Copy
+Edit
+sudo mkdir /mnt/odoo_data
+Mount the disk:
+
+bash
+Copy
+Edit
+sudo mount /dev/sdb1 /mnt/odoo_data
+To make it mount automatically on boot:
+
+bash
+Copy
+Edit
+sudo blkid
+# Copy the UUID of /dev/sdb1
+sudo nano /etc/fstab
+# Add this line at the end:
+UUID=your-uuid-here /mnt/odoo_data ext4 defaults 0 2
+🗃️ 4. Store Odoo DB Here (Optional)
+If you're using PostgreSQL locally:
+
+Edit the PostgreSQL config or initialize the PostgreSQL data directory on /mnt/odoo_data.
+
+Example:
+
+bash
+Copy
+Edit
+sudo systemctl stop postgresql
+sudo mv /var/lib/postgresql/14/main /mnt/odoo_data/main
+sudo chown -R postgres:postgres /mnt/odoo_data/main
+sudo nano /etc/postgresql/14/main/postgresql.conf
+# Change:
+data_directory = '/mnt/odoo_data/main'
+sudo systemctl start postgresql
