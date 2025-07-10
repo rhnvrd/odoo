@@ -86,7 +86,11 @@ Configure PostgreSQL:
 
 ```bash
 sudo su - postgres
+```
+```bash
 createuser --createdb --username postgres --no-createrole --no-superuser --pwprompt odoo
+```
+```bash
 psql
 ```
 
