@@ -56,7 +56,7 @@ sudo apt-get install -y python3-dev libxml2-dev libxslt1-dev zlib1g-dev libsasl2
 Install npm:
 
 ```bash
-sudo apt-get install -y npm
+sudo apt-get install -y nodejs npm
 ```
 
 Install git:
